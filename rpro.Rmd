@@ -1,0 +1,138 @@
+---
+title: "rpro"
+author: "Charin Polpanumas"
+date: "February 6, 2559 BE"
+output: html_document
+---
+
+1. Plot the 30-day mortality rates for heart attack
+```{r}
+outcome <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+outcome[, 11] <- as.numeric(outcome[, 11])
+## You may get a warning about NAs being introduced; that is okay
+hist(outcome[, 11])
+```
+
+
+2. Finding the best hospital in a state
+```{r}
+best<-function(state,outcome){
+    #state is 7
+    #heart attack 11
+    #hearth failure 17
+    #pneumonia 23
+    #hospital name is 2
+    
+    df <- read.csv("outcome-of-care-measures.csv", stringsAsFactors = FALSE)
+    
+    #Check state
+    if (!(state %in% df[,7])){
+        stop('Invalid State')
+    }
+    
+    #Check outcome
+    valid_outcome <- c('heart attack', 'heart failure', 'pneumonia')
+    index<-0
+    if(outcome=='heart attack') index<-11
+    else if(outcome=='heart failure') index<-17
+    else if(outcome=='pneumonia') index<-23
+    else stop('Invalid Outcome')
+    
+    #Find minimum death rate
+    state_df <-subset(df,State==state)
+    state_df[,index]<-as.numeric(state_df[,index])
+    ranking <-order(state_df[,index],state_df[,2],na.last = NA)
+    state_df[ranking[1],2]
+}
+
+```
+
+3. Ranking hospitals by outcome in a state
+```{r}
+rankhospital<-function(state,outcome,num='best'){
+    #state is 7
+    #heart attack 11
+    #hearth failure 17
+    #pneumonia 23
+    #hospital name is 2
+    
+    df <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+    
+    #Check state
+    if (!(state %in% df[,7])){
+        stop('Invalid State')
+    }
+    
+    #Check outcome
+    valid_outcome <- c('heart attack', 'heart failure', 'pneumonia')
+    index<-0
+    if(outcome=='heart attack') index<-11
+    else if(outcome=='heart failure') index<-17
+    else if(outcome=='pneumonia') index<-23
+    else stop('Invalid Outcome')
+    
+    
+    state_df <-subset(df,State==state)
+    state_df[,index]<-as.numeric(state_df[,index])
+
+    
+    ranking <-order(state_df[,index],state_df[,2],na.last = NA)
+    
+    #Check num, create nums
+    last <- length(ranking)
+    if (num=='best') nums<-1
+    else if (num=='worst') nums<-last
+    else nums<-as.numeric(num)
+    
+    state_df[ranking[nums],2]
+
+}
+
+```
+
+4. Ranking hospitals in all states
+```{r}
+rankall<-function(outcome,num='best'){
+    
+    df <- read.csv("outcome-of-care-measures.csv", colClasses = "character")
+    state_list <-unique(df$State)
+    #Remove DC, PR, GU, VI which are not in US per se
+    #state_list <- state_list[state_list != 'DC' & 
+    #                             state_list != 'PR' &
+    #                             state_list != 'GU' &
+    #                             state_list != 'VI']
+    
+    #Check outcome
+    valid_outcome <- c('heart attack', 'heart failure', 'pneumonia')
+    index<-0
+    if(outcome=='heart attack') index<-11
+    else if(outcome=='heart failure') index<-17
+    else if(outcome=='pneumonia') index<-23
+    else stop('Invalid Outcome')
+    
+    #result data.frame
+    result <- data.frame(hospital=character(),state=character())
+    
+    #loop through states in state_list
+    for (i in state_list){
+        state_df <-subset(df,State==i)
+        state_df[,index]<-as.numeric(state_df[,index])
+        ranking <-order(state_df[,index],state_df[,2],na.last = NA)
+        
+        #Check num, create nums
+        last <- length(ranking)
+        if (num=='best') nums<-1
+        else if (num=='worst') nums<-last
+        else nums<-as.numeric(num)
+        
+        #bind to result
+        result <-rbind(result, data.frame(hospital=state_df[ranking[nums],2],
+                                          state=i))
+        
+    }
+    
+    result
+}
+
+```
+
