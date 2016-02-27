@@ -9,18 +9,20 @@ if (!file.exists('hospital.rds')){
     saveRDS(df,file='hospital.rds')
 }
 
+#state is 7
+#heart attack 11
+#hearth failure 17
+#pneumonia 23
+#hospital name is 2
+df <- readRDS('hospital.rds')
+
 #Set state names list
 state_names <-unique(df$State)
 
 
 #Rank hospital function
 rankhospital<-function(city,state,outcome){
-    #state is 7
-    #heart attack 11
-    #hearth failure 17
-    #pneumonia 23
-    #hospital name is 2
-    df <- readRDS('hospital.rds')
+
 
     #Check state
     if (!(state %in% df[,7])){
@@ -48,5 +50,5 @@ rankhospital<-function(city,state,outcome){
                Tel=state_df[ranking,'Phone.Number'],
                Address=state_df[ranking,'str'])
     result<-cbind(Rank=1:dim(result)[1],result)
-
+    return(result)
 }
